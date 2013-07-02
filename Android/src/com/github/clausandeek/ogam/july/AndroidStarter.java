@@ -13,10 +13,13 @@ public class AndroidStarter extends AndroidApplication {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         AndroidApplicationConfiguration cfg = new AndroidApplicationConfiguration();
+
+        // TODO initialization settings will need to go to a properties file/constants class
         cfg.useAccelerometer = false;
         cfg.useCompass = false;
         cfg.useWakelock = true;
         cfg.useGL20 = true;
+        
         initialize(new Ogam(), cfg);
     }
 }
