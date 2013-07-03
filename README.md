@@ -20,8 +20,10 @@ will turn at each intersection between the swipe semi-lines
 + Touch the screen to determine the next destination of the ship. The
 ship will move along the most distant axis first, then the closest
 axis to the destination.
+E : To summarize: touch navigates the ship around the level, swiping creates a line for the shape the ship will claim
 
 + Virtual keyboard
+E : I wouldn't go with a virtual keyboard. In landscape, this takes up too much screen and in portrait it will look dumb... cramped
 
 + Other ideas?
 
