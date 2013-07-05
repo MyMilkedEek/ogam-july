@@ -37,6 +37,7 @@ local.properties
 *.so
 *.jar
 *.apk
+.out/*
 
 
 #################
