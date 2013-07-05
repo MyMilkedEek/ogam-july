@@ -1,16 +1,19 @@
 package com.github.ogam.july;
 
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.Vector2;
 import com.github.ogam.july.gamemodel.*;
+import com.github.ogam.july.listener.KeyboardListener;
+import com.github.ogam.july.listener.TouchListener;
 
 public class PlayScreen implements Screen {
 
@@ -37,7 +40,6 @@ public class PlayScreen implements Screen {
 		
 		// Probably needs to move this somewhere better (GameMain? On Show?)
 		init();
-
 	}
 	
 	public void init()
@@ -45,6 +47,18 @@ public class PlayScreen implements Screen {
 		catwlk = new CatWalk();
 		playership = new Ship();
 		playership.setPos(catwlk.getPath()[0]);
+
+        // Binds the ship to the touch/mouse input
+        boolean isKeyboardPresent = Gdx.input.isPeripheralAvailable(Input.Peripheral.HardwareKeyboard);
+        InputProcessor inputProcessor = null;
+
+        if ( isKeyboardPresent ) {
+            inputProcessor = new KeyboardListener(playership);
+        } else {
+            inputProcessor = new GestureDetector(new TouchListener(playership));
+        }
+
+        Gdx.input.setInputProcessor(inputProcessor);
 	}
 	
 	
@@ -76,9 +90,9 @@ public class PlayScreen implements Screen {
 	{
 		Vector2 shipcenter = playership.getPos();
 		
-		lineDrawer.begin(ShapeType.Filled);
+		lineDrawer.begin(ShapeType.FilledRectangle);
 		lineDrawer.setColor(Color.BLUE);
-		lineDrawer.rect(shipcenter.x - Ship.SHIPSIZE/2, shipcenter.y - Ship.SHIPSIZE/2, Ship.SHIPSIZE, Ship.SHIPSIZE);
+		lineDrawer.filledRect(shipcenter.x - Ship.SHIPSIZE / 2, shipcenter.y - Ship.SHIPSIZE / 2, Ship.SHIPSIZE, Ship.SHIPSIZE);
 		lineDrawer.end();
 	}
 	
