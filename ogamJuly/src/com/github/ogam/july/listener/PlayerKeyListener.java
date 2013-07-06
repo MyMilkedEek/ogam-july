@@ -10,13 +10,13 @@ import com.github.ogam.july.util.Constants;
 /**
  * @author My Milked Eek
  */
-public class KeyboardListener implements InputProcessor {
+public class PlayerKeyListener implements InputProcessor {
 
     private boolean acceptingInput;
 
     private Ship ship;
 
-    public KeyboardListener(Ship ship) {
+    public PlayerKeyListener(Ship ship) {
         acceptingInput = true;
 
         this.ship = ship;

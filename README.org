@@ -1,0 +1,70 @@
+*OGAM JULY*
+
+This is a game project for the "One Game a Month" challenge
+(July-13). This is a collaborative effort between Eek and Claus.
+
+The basic idea of the game is to be a Qix clone.
+
+
+* Game Outline
+** Gameplay
+
+The game is a Qix Clone. A small ship moves on a "catwalk" around a
+dangerous area. The ship can cut the dangerous area, but it is
+vulnerable as it does so. The goal of each stage is to reduce the
+dangerous area to a certain percentage of its original size.
+
+*** Goal of the game
+Accumulating points. Points are accumulated by:
+  + Time to complete the stage
+  + Enemies Killed
+  + Bonus Grabbed
+
+*** How to die
+
+The player has a number of lives. There is a timer when cutting the
+danger zone - if this timer reaches zero, the player dies
+
+*** Gimmicks
+  + Upgrades?
+  + High Scores?
+  + Infinite levels, or ending (based on theme) 
+
+** Game Interface
+  + Touch Based
+    Touch the screen to move the "spaceship". There are two touch
+    states: Cut and Move. States are switched by pressing a button in
+    an interface
+  + Other ideas     
+    Since this is an action game, we should think about better
+    interfaces if possible.
+
+** Game Calculus
+*** How the Ship Moves
+    - Speed and velocity: 
+      Speed is a float. The ship always moves on an X or Y axis (velocity).
+      If the ship is on the catwalk, its movement is clampet to the current
+      segment it is on.
+
+    - Mouse movement: Touch determines a target location. 
+
+      If the player is in the catwalk, the target place determines a
+      target point in the catwalk for the ship to move to. The catwalk
+      determines the next vertex closest to the target point, and
+      sends that vertex to the player as a sub-objective.
+
+      If the player is outside the catwalk, the target place determines 
+      an intermediate target colinear to the player (on the longest axis).
+
+    - Keyboard movement: Arrow keys determine direction, space cuts
+
+      The player ship moves towards the desired direction, and clamps
+      to the closest catwalk, unless in "cutting mode".
+
+      Needs to determine how the player returns from cutmode to the
+      catwalk.
+
+*** Lifecycle
+   - Splash Screen: Loads assets.
+   - Menu Screen: Goes to: Start Game, Settings, High Scores, Help
+   - Main Game: Goes to Start Game, High Scores, Next Level, End Game (endless?)

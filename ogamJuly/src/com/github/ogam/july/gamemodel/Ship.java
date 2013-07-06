@@ -15,16 +15,25 @@ public class Ship {
 
 	public static final int SHIPSIZE = 16;
 	
-	Vector2 position; // center of the ship
-	Vector2 speed;
+	
 	
 	Rectangle collisionBox;
 	
-	/* Is the ship cutting now? or moving on the catwalk */
-	boolean cutting_state;
 	
-	/* when cutting, the current cut lines are stored here */
-	Array<Vector2> cutLines;
+	/* Cutting related variables */
+	boolean cutting_state; // is the ship cutting now, or moving on the catwalk?
+	Array<Vector2> cutLines; // current cutlines (during cutting)
+	
+	
+	/* Movement related variables */
+	CatWalk lane; // should this be here, or on a parent "context" object?? Ship needs to know where the lane is to snap its position
+	
+	Vector2 position; // center of the ship
+	Vector2 speed;
+	
+	public Vector2 endTarget;
+	public Vector2 currentTarget;
+	
 	
 	public Ship()
 	{
@@ -33,6 +42,15 @@ public class Ship {
 		cutLines = new Array<Vector2>();
 		cutting_state = false;
 		collisionBox = new Rectangle(0,0,SHIPSIZE,SHIPSIZE);
+		
+		endTarget = null;
+		currentTarget = null;
+	}
+	
+	
+	public void setLane(CatWalk l)
+	{
+		lane = l;
 	}
 	
 	/**
@@ -46,9 +64,23 @@ public class Ship {
 		collisionBox.y = newpos.y - SHIPSIZE/2;
 	}
 	
-	public Vector2 getPos() // gets the center of the ship
+	/**
+	 * @return Returns the center of the ship in world coordinates;
+	 */
+	public Vector2 getPos()
 	{
 		return position;
+	}
+	
+	/**
+	 * Send a tap from the input to the ship
+	 * @param tap
+	 */
+	public void doTap(Vector2 tap)
+	{
+		// FIXME: This is just for quickly testing the taps
+		endTarget = tap;
+		currentTarget = lane.closestPointInPath(tap);
 	}
 	
 }

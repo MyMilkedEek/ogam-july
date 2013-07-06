@@ -1,8 +1,10 @@
 package com.github.ogam.july.listener;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.github.ogam.july.gamemodel.Ship;
 import com.github.ogam.july.util.Constants;
 
@@ -10,14 +12,19 @@ import com.github.ogam.july.util.Constants;
  * @author caranha
  * @author My Milked Eek
  */
-public class TouchListener implements GestureDetector.GestureListener {
+public class PlayerTouchListener implements GestureDetector.GestureListener {
 
+	
     private boolean acceptingInput;
     private Ship ship;
+    private OrthographicCamera worldcam;
+    private Vector3 rawtouch;
 
-    public TouchListener(Ship ship) {
+    public PlayerTouchListener(Ship ship, OrthographicCamera worldcam) {
         acceptingInput = true;
         this.ship = ship;
+        this.worldcam = worldcam;
+        rawtouch = new Vector3();
     }
 
 
@@ -33,7 +40,14 @@ public class TouchListener implements GestureDetector.GestureListener {
     @Override
     public boolean tap(float x, float y, int count, int button) {
         if (acceptingInput) {
-            Gdx.app.log(Constants.LOG_TAG, String.format("TouchListener - tap @ %f:%f c%d b%d", x, y, count, button));
+        	
+        	// Added by claus -- converting from screen coordinates to world coordinates
+        	// TODO: since we use a 2D world, maybe a custom function would perform better?
+			rawtouch.set(x,y,0);
+			worldcam.unproject(rawtouch);        	
+        	
+            Gdx.app.log(Constants.LOG_TAG, String.format("TouchListener - tap @ %f:%f c%d b%d", rawtouch.x, rawtouch.y, count, button));
+            ship.doTap(new Vector2(rawtouch.x,rawtouch.y));
             return true;
         }
         return false;

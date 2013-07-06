@@ -12,8 +12,8 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.Vector2;
 import com.github.ogam.july.gamemodel.*;
-import com.github.ogam.july.listener.KeyboardListener;
-import com.github.ogam.july.listener.TouchListener;
+import com.github.ogam.july.listener.PlayerKeyListener;
+import com.github.ogam.july.listener.PlayerTouchListener;
 
 public class PlayScreen implements Screen {
 
@@ -47,18 +47,28 @@ public class PlayScreen implements Screen {
 		catwlk = new CatWalk();
 		playership = new Ship();
 		playership.setPos(catwlk.getPath()[0]);
+		playership.setLane(catwlk);
 
-        // Binds the ship to the touch/mouse input
-        boolean isKeyboardPresent = Gdx.input.isPeripheralAvailable(Input.Peripheral.HardwareKeyboard);
-        InputProcessor inputProcessor = null;
+		/* Input Initialization */
+		// TODO: We probably should use a multiplexer to add the ability of a separate input processor for GUI
+		
+		// TODO: Keyboard/Mouse-Touch should probably be defined in the game options. The switch between mouse/kb input 
+		//        should be made whenever the play screen is launched. 
+		
+		InputProcessor playerInputProcessor = null;
+		
+		// boolean isKeyboardPresent = Gdx.input.isPeripheralAvailable(Input.Peripheral.HardwareKeyboard);
+		boolean isKeyboardPresent = false;
 
-        if ( isKeyboardPresent ) {
-            inputProcessor = new KeyboardListener(playership);
+		if ( isKeyboardPresent ) {
+            playerInputProcessor = new PlayerKeyListener(playership);
         } else {
-            inputProcessor = new GestureDetector(new TouchListener(playership));
+            playerInputProcessor = new GestureDetector(new PlayerTouchListener(playership,c));
         }
-
-        Gdx.input.setInputProcessor(inputProcessor);
+		
+		// TODO: change this to an input Multiplexer to separate GUI input from Player input
+        Gdx.input.setInputProcessor(playerInputProcessor);
+        
 	}
 	
 	
@@ -90,9 +100,22 @@ public class PlayScreen implements Screen {
 	{
 		Vector2 shipcenter = playership.getPos();
 		
-		lineDrawer.begin(ShapeType.FilledRectangle);
+		// NOTE TO MME: Do you have the most recent libGDX nightly build? I think "Filled Rectangle" has been replaced with "filled"
+		lineDrawer.begin(ShapeType.Filled);
 		lineDrawer.setColor(Color.BLUE);
-		lineDrawer.filledRect(shipcenter.x - Ship.SHIPSIZE / 2, shipcenter.y - Ship.SHIPSIZE / 2, Ship.SHIPSIZE, Ship.SHIPSIZE);
+		lineDrawer.rect(shipcenter.x - Ship.SHIPSIZE / 2, shipcenter.y - Ship.SHIPSIZE / 2, Ship.SHIPSIZE, Ship.SHIPSIZE);
+		if (playership.endTarget != null)
+		{
+			lineDrawer.setColor(Color.RED);
+			lineDrawer.circle(playership.endTarget.x, playership.endTarget.y, 4);
+		}
+		if (playership.currentTarget != null)
+		{
+			lineDrawer.setColor(Color.WHITE);
+			lineDrawer.circle(playership.currentTarget.x, playership.currentTarget.y, 4);
+		}
+		
+		
 		lineDrawer.end();
 	}
 	
