@@ -82,7 +82,23 @@ public class PlayScreen implements Screen {
 		lineDrawer.setProjectionMatrix(c.combined);
 		renderDebugCatwalk();
 		renderDebugShip();
+		
+		// Might want to add a FPS limiter here in the future to
+		// decouple rendering loops from update loops.
+		update(delta);
 	}
+	
+	
+	/**
+	 * Calls the update function on everything that is updateable
+	 * @param delta
+	 */
+	public void update(float delta)
+	{
+		
+	}
+	
+	
 
 	private void renderDebugCatwalk()
 	{
@@ -104,18 +120,17 @@ public class PlayScreen implements Screen {
 		lineDrawer.begin(ShapeType.Filled);
 		lineDrawer.setColor(Color.BLUE);
 		lineDrawer.rect(shipcenter.x - Ship.SHIPSIZE / 2, shipcenter.y - Ship.SHIPSIZE / 2, Ship.SHIPSIZE, Ship.SHIPSIZE);
-		if (playership.endTarget != null)
+		if (playership.lastTapLocation != null)
 		{
 			lineDrawer.setColor(Color.RED);
-			lineDrawer.circle(playership.endTarget.x, playership.endTarget.y, 4);
+			lineDrawer.circle(playership.lastTapLocation.x, playership.lastTapLocation.y, 4);
 		}
-		if (playership.currentTarget != null)
+		
+		lineDrawer.setColor(Color.WHITE);
+		for (int i = 0; i < playership.goalList.size; i++)
 		{
-			lineDrawer.setColor(Color.WHITE);
-			lineDrawer.circle(playership.currentTarget.x, playership.currentTarget.y, 4);
+			lineDrawer.circle(playership.goalList.get(i).x, playership.goalList.get(i).y, 3);
 		}
-		
-		
 		lineDrawer.end();
 	}
 	

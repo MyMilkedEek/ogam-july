@@ -57,5 +57,36 @@ public class OgamMath {
 		return ret;
 	}
 	
+	/**
+	 * Calculates if the distance between each coordinate of point is equal or less the the distance between 
+	 * the end points: Since the line is vertical or horizontal, this should determine that the point is located 
+	 * in the segment.
+	 * 
+	 * @param start
+	 * @param end
+	 * @param point
+	 * @return
+	 */
+	public static boolean isPointInSegment(Vector2 start, Vector2 end, Vector2 point)
+	{
+		if ((Math.abs(point.x - start.x) + Math.abs(point.x - end.x) <= Math.abs(start.x - end.x) + Constants.EPSILON)&&
+				(Math.abs(point.y - start.y) + Math.abs(point.y - end.y) <= Math.abs(start.y - end.y) + Constants.EPSILON))
+			return true;
+		else
+			return false;
+	}
+	
+	/**
+	 * Calculates the manhattan points between two points. If the points are colinear (they often are in a grid) this 
+	 * calculates the actual distance without the need for multiplications.
+	 * 
+	 * @param start
+	 * @param end
+	 * @return
+	 */
+	public static float manhattanDistance(Vector2 start, Vector2 end)
+	{
+		return((Math.abs(start.x - end.x) + Math.abs(start.y - end.y)));
+	}
 	
 }

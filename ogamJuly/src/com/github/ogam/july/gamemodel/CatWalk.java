@@ -14,7 +14,9 @@ import com.github.ogam.july.util.OgamMath;
 public class CatWalk {
 	
 	Array<Vector2> originalPath; // used for drawing
+	
 	Array<Vector2> path;
+	float pathLength;
 	
 	public CatWalk()
 	{
@@ -27,6 +29,7 @@ public class CatWalk {
 		path.add(new Vector2(300,0));
 		path.add(new Vector2(300,300));
 		path.add(new Vector2(0,300));
+		pathLength = 1200; // TODO: make a function to calculate this
 		
 		originalPath.add(new Vector2(0,0));
 		originalPath.add(new Vector2(300,0));
@@ -86,26 +89,101 @@ public class CatWalk {
 	}
 	
 	
-	public boolean insidePath(Vector2 point)
+	/** 
+	 * Given a starting point and a "touch" target, calculates the list of vertices that takes 
+	 * from the starting point to the target in the shortest path.
+	 * 
+	 * TODO: This function checks all the segments in the path 4 times. We may want to optimize this.
+	 * 
+	 * @param origin
+	 * @param target
+	 * @return
+	 */
+	public Array<Vector2> calculateSubGoals(Vector2 origin, Vector2 target)
 	{
-		// TODO: Transform the code below (ray algorithm) to this data structure
-		
-		// Code from LibGdx "math.Polygon"
-//		final float[] vertices = getTransformedVertices();
-//		final int numFloats = vertices.length;
-//		int intersects = 0;
-//
-//		for (int i = 0; i < numFloats; i += 2) {
-//		float x1 = vertices[i];
-//		float y1 = vertices[i + 1];
-//		float x2 = vertices[(i + 2) % numFloats];
-//		float y2 = vertices[(i + 3) % numFloats];
-//		if (((y1 <= y && y < y2) || (y2 <= y && y < y1)) && x < ((x2 - x1) / (y2 - y1) * (y - y1) + x1)) intersects++;
-//		}
-//		return (intersects & 1) == 1;	
+		Array<Vector2> calc = new Array<Vector2>(Vector2.class);
+		Vector2 endPoint = closestPointInPath(target); // Possibly goes around all segments #1
 
-		return false;
+		int idx_o = -1;
+		int idx_e = -1;
+
+		// 1- Calculate the segments in which point 1 and 2 are located.
+		for (int i = 0; i < path.size; i++) // possibly goes around all segments #2
+		{
+			if (idx_o == -1)
+				if (testPointInSegment(i,origin))
+					idx_o = i;
+			
+			if (idx_e == -1)
+				if (testPointInSegment(i,endPoint))
+					idx_e = i;
+				
+			if (idx_o != -1 && idx_e != -1) // these are the droids we are looking for
+				break;
+		}
+				
+		// 1a- If both points are in the same segment, set the end point as destination and return
+		if (idx_o == idx_e)
+		{
+			calc.add(endPoint);
+			return calc;
+		}
+		
+		// 2- Calculate the in-path distance from 1 to 2
+		float distance = OgamMath.manhattanDistance(origin, path.get((idx_o+1)%path.size));
+		
+		int i = ((idx_o+1)%path.size);
+		while (i != idx_e) // possibly goes around all segments #3
+		{
+			distance += OgamMath.manhattanDistance(path.get(i), path.get((i+1)%path.size));
+			i = (i+1)%path.size;
+		}
+		distance += OgamMath.manhattanDistance(path.get(i), endPoint);
+
+		// 3- Put all vectors in the path - order depends on the shorter distance
+
+		i = idx_o;
+		if (distance < pathLength/2) // possibly goes around all segments #4
+		{
+			while (i != idx_e)
+			{
+				i = (i+1)%path.size;
+				calc.add(path.get(i));
+			}
+		}
+		else
+		{
+			while (i != idx_e)
+			{
+				calc.add(path.get(i));
+				i = (i - 1 + path.size)%path.size;
+			}			
+		}
+		
+		calc.add(endPoint);
+		
+		return calc;
 	}
 	
+	
+	
+	/**
+	 * Returns true if the point "point" is in the segment between the path points idx and idx+1.
+	 * Returns false if idx is out of range;
+	 * 
+	 * @param idx
+	 * @param point
+	 * @return
+	 */
+	public boolean testPointInSegment(int idx, Vector2 point)
+	{
+		if (idx >= path.size)
+			return false;
+		
+		Vector2 p0 = path.get(idx);
+		Vector2 p1 = path.get((idx+1)%path.size);
+		
+		return OgamMath.isPointInSegment(p0, p1, point);
+	}
 
 }
