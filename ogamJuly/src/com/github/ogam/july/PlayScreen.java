@@ -95,7 +95,7 @@ public class PlayScreen implements Screen {
 	 */
 	public void update(float delta)
 	{
-		
+		playership.update(delta);
 	}
 	
 	
@@ -103,12 +103,18 @@ public class PlayScreen implements Screen {
 	private void renderDebugCatwalk()
 	{
 		Vector2[] lines = catwlk.getPath();
-		
+		Vector2[] olines = catwlk.getOriginalPath();
 		
 		lineDrawer.begin(ShapeType.Line);
+		
+		lineDrawer.setColor(Color.DARK_GRAY);
+		for (int i = 0; i < olines.length; i++)
+			lineDrawer.line(olines[i].x, olines[i].y, olines[(i+1)%olines.length].x, olines[(i+1)%olines.length].y);
+		
 		lineDrawer.setColor(Color.WHITE);
 		for (int i = 0; i < lines.length; i++)
 			lineDrawer.line(lines[i].x, lines[i].y, lines[(i+1)%lines.length].x, lines[(i+1)%lines.length].y);
+
 		lineDrawer.end();
 	}
 	
@@ -118,8 +124,16 @@ public class PlayScreen implements Screen {
 		
 		// NOTE TO MME: Do you have the most recent libGDX nightly build? I think "Filled Rectangle" has been replaced with "filled"
 		lineDrawer.begin(ShapeType.Filled);
-		lineDrawer.setColor(Color.BLUE);
+		
+		if (playership.isCutting())
+			lineDrawer.setColor(Color.RED);
+		else
+			lineDrawer.setColor(Color.BLUE);
+		
+		
 		lineDrawer.rect(shipcenter.x - Ship.SHIPSIZE / 2, shipcenter.y - Ship.SHIPSIZE / 2, Ship.SHIPSIZE, Ship.SHIPSIZE);
+		
+		
 		if (playership.lastTapLocation != null)
 		{
 			lineDrawer.setColor(Color.RED);
@@ -131,6 +145,8 @@ public class PlayScreen implements Screen {
 		{
 			lineDrawer.circle(playership.goalList.get(i).x, playership.goalList.get(i).y, 3);
 		}
+		
+		
 		lineDrawer.end();
 	}
 	

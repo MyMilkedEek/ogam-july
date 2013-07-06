@@ -89,4 +89,32 @@ public class OgamMath {
 		return((Math.abs(start.x - end.x) + Math.abs(start.y - end.y)));
 	}
 	
+	
+	/**
+	 * Tests if the point is inside the polygon or not. This is an adaptation from math.Intersector.pointInPolygon
+	 * @param point
+	 * @param polygon
+	 * @return
+	 */
+	public static boolean isPointInPolygon(Vector2 point, Vector2[] polygon)
+	{
+		int j = polygon.length - 1;
+		boolean oddNodes = false;
+		for (int i = 0; i < polygon.length; i++) 
+		{
+			if (polygon[i].y < point.y && polygon[j].y >= point.y || polygon[j].y < point.y
+					&& polygon[i].y >= point.y) 
+			{
+				if (polygon[i].x + (point.y - polygon[i].y) / (polygon[j].y - polygon[i].y)
+						* (polygon[j].x - polygon[i].x) < point.x) 
+				{
+					oddNodes = !oddNodes;
+				}
+			}
+			j = i;
+		}
+		return oddNodes;
+	}
+	
+	
 }

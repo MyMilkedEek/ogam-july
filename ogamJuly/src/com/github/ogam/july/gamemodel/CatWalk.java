@@ -1,6 +1,11 @@
 package com.github.ogam.july.gamemodel;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.github.ogam.july.util.Constants;
@@ -8,6 +13,8 @@ import com.github.ogam.july.util.OgamMath;
 
 /**
  * Catwalk contains the information about the "safe" area that can be walkable by the ship
+ * The internal values of this class are ugly and I should be ashamed of them.
+ * 
  * @author caranha
  *
  */
@@ -24,17 +31,13 @@ public class CatWalk {
 		path = new Array<Vector2>(Vector2.class);
 		originalPath = new Array<Vector2>(Vector2.class);
 		
-		/* Initial Catwalk (on world coordinates) */
-		path.add(new Vector2(0,0));
-		path.add(new Vector2(300,0));
-		path.add(new Vector2(300,300));
-		path.add(new Vector2(0,300));
-		pathLength = 1200; // TODO: make a function to calculate this
-		
 		originalPath.add(new Vector2(0,0));
 		originalPath.add(new Vector2(300,0));
 		originalPath.add(new Vector2(300,300));
 		originalPath.add(new Vector2(0,300));
+		
+		path.addAll(originalPath);
+		updatePathLength();
 		
 		
 	}
@@ -86,6 +89,29 @@ public class CatWalk {
 		
 		ret = OgamMath.projectPointInGridSeg(path.get(retidx), path.get((retidx+1)%path.size), point);
 		return ret;
+	}
+	
+	
+	/**
+	 * Finds an intersection between the start and end and the path. Assumes that this segment crosses the path.
+	 * 
+	 * @param start assumed to be inside the path
+	 * @param end assumed to be outside the path
+	 * @return
+	 */
+	public Vector2 intersectionInPath(Vector2 start, Vector2 end)
+	{
+		Vector2 ret = new Vector2();
+		int j = path.size - 1;
+		for (int i = 0; i < path.size; i++)
+		{
+			if (Intersector.intersectSegments(start, end, path.get(j), path.get(i), ret))
+				return ret;
+			j = i;
+		}
+		
+		Gdx.app.log(Constants.LOG_TAG, "Catwalk: Supposed to find an intersection between segment and path, but failed");
+		return null;
 	}
 	
 	
@@ -185,5 +211,17 @@ public class CatWalk {
 		
 		return OgamMath.isPointInSegment(p0, p1, point);
 	}
-
+	
+	private void updatePathLength()
+	{
+		pathLength = 0;
+		int j = path.size-1;
+		
+		for (int i = 0; i < path.size; i++)
+		{
+			pathLength += OgamMath.manhattanDistance(path.get(j), path.get(i));
+			j = i;
+		}		
+	}
+	
 }
