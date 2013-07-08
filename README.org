@@ -5,7 +5,6 @@ This is a game project for the "One Game a Month" challenge
 
 The basic idea of the game is to be a Qix clone.
 
-
 * Game Outline
 ** Gameplay
 

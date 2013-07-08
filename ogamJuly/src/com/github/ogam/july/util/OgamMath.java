@@ -116,5 +116,18 @@ public class OgamMath {
 		return oddNodes;
 	}
 	
-	
+	/**
+	 * Tests if points a, b and c are collinear. Since this is a grid-based world, the three points 
+	 * are collinear if their x coordinates or their y coordinates are the same.
+	 * @param a
+	 * @param b
+	 * @param c
+	 * @return
+	 */
+	public static boolean testCollinear(Vector2 a, Vector2 b, Vector2 c)
+	{
+		if ((a.x == b.x && a.x == c.x)||(a.y == b.y && a.y == c.y))
+			return true;
+		return false;
+	}
 }

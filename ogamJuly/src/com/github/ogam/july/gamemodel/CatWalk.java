@@ -109,8 +109,6 @@ public class CatWalk {
 				return ret;
 			j = i;
 		}
-		
-		Gdx.app.log(Constants.LOG_TAG, "Catwalk: Supposed to find an intersection between segment and path, but failed");
 		return null;
 	}
 	
@@ -191,7 +189,19 @@ public class CatWalk {
 		return calc;
 	}
 	
-	
+	/**
+	 * This vector stores a series of cuts for eventual cutting of the catwalk at the next update cycle
+	 * 
+	 * FIXME: Must make sure that either:
+	 * A- the catwalk is updated within this function call
+	 * B- the catwalk path is updated in the next update cycle, which happens before the ship can be updated.
+	 * 
+	 * @param cutline
+	 */
+	public void pushCut(Array<Vector2> cutline)
+	{
+		
+	}
 	
 	/**
 	 * Returns true if the point "point" is in the segment between the path points idx and idx+1.

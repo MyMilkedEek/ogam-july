@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
 import com.github.ogam.july.gamemodel.*;
 import com.github.ogam.july.listener.PlayerKeyListener;
 import com.github.ogam.july.listener.PlayerTouchListener;
@@ -123,13 +124,26 @@ public class PlayScreen implements Screen {
 		Vector2 shipcenter = playership.getPos();
 		
 		// NOTE TO MME: Do you have the most recent libGDX nightly build? I think "Filled Rectangle" has been replaced with "filled"
+
+		Array<Vector2> tmp = playership.getCutLine();
+		if (tmp.size > 0) // draw the cutline
+		{
+			lineDrawer.begin(ShapeType.Line);
+			lineDrawer.setColor(Color.RED);
+			for (int i = 0; i < (tmp.size-1); i++)
+			{
+				lineDrawer.line(tmp.get(i).x, tmp.get(i).y, tmp.get(i+1).x, tmp.get(i+1).y);
+			}
+			lineDrawer.end();
+		}
+		
 		lineDrawer.begin(ShapeType.Filled);
+		
 		
 		if (playership.isCutting())
 			lineDrawer.setColor(Color.RED);
 		else
 			lineDrawer.setColor(Color.BLUE);
-		
 		
 		lineDrawer.rect(shipcenter.x - Ship.SHIPSIZE / 2, shipcenter.y - Ship.SHIPSIZE / 2, Ship.SHIPSIZE, Ship.SHIPSIZE);
 		

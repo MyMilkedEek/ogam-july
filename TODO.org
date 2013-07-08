@@ -1,0 +1,18 @@
+* ISSUES
+- [ ] SW bug: cutLines are not drawn over SW border, but they are
+  drawn over NE border. (They should never be drawn over catwalk
+  borders)
+
+* TASKLIST
+- [ ] Make cutlines stop crossing (should the ship die if the cutlines
+  cross? or just delete the loops?)
+- [ ] Add basic catwalk cutting after cutLine is finished
+
+- [ ] Do the rest of the game :-)
+
+
+* WISHLIST
+- [ ] In "Ship": should probably separate the logic that chooses a new
+  position (direction) from the logic that moves the ship to this new
+  position. Probably need also to create a new function to validate
+  the new position (when trying to go out of the field)

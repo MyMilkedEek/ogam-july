@@ -68,10 +68,14 @@ public class Ship {
 		else
 			doFreeMove(delta);
 		
+		// TODO: probably should move the "test to see if we are back at the lane" check here 
+		// (from outside the "do move" code) to avoid code duplication???
+		
 	}
 	
 	public void doGoalMove(float delta)
 	{
+		boolean doEndCut = false;
 		direction.x = position.x + Math.signum(goalList.first().x - position.x)*(speed*delta);
 		direction.y = position.y + Math.signum(goalList.first().y - position.y)*(speed*delta);
 		
@@ -92,10 +96,9 @@ public class Ship {
 				if (!OgamMath.isPointInPolygon(direction, lane.getPath())) 
 				{
 					direction.set(position);
-					endCutting();
+					doEndCut = true;
 				}
-					
-				first_cut = false;
+				first_cut = false; // whatever happens, the first cut ends.
 			}
 			else
 			{
@@ -103,13 +106,35 @@ public class Ship {
 				if (tmp != null) // crossed the treshold, cutting is over
 				{
 					direction = tmp;
-					endCutting();
+					doEndCut = true;
+				}
+			}
+
+			// if direction is different than position while cutting, 
+			// we move, and we need to possibly add a point to the cutting line
+			if (!direction.epsilonEquals(position, Constants.EPSILON))
+			{
+
+				if (cutLines.size == 1) // only one point, we need to add another one.
+				{
+					cutLines.add(direction.cpy());
+				}
+				else // more than one point exist. If last three points are not colinear, add a new one.
+				{
+					Vector2 old = cutLines.pop();
+					if (!OgamMath.testCollinear(direction, old, cutLines.peek())) // points are not collinear, add the old back.
+						cutLines.add(old);
+					cutLines.add(direction.cpy());
 				}
 			}
 		}
 		
+		
+		
 		setPos(direction);
 		direction.set(0, 0);
+		if (doEndCut)
+			endCutting();
 		
 	}
 	
@@ -172,16 +197,35 @@ public class Ship {
 		}
 	}
 	
+	/**
+	 * Ship receives a signal that it must start cutting (key pressed or ship clicked). This 
+	 * can happen while the ship is already cutting, in which case the method should be ignored. 
+	 * If this happens while the ship is not cutting, then proper measures should be taken.
+	 */
 	void startCutting()
 	{
-		cutting_state = true;
-		first_cut = true;
-		goalList.clear();
+		if (cutting_state == false)
+		{
+			// ship started cutting
+			cutting_state = true;
+			first_cut = true;
+			cutLines.add(position.cpy());
+			
+		} // else ship is already cutting, and just received an extra cutting signal. 
+			
+
+		goalList.clear(); // this only matters for mouse input.
 	}
 	
 	void endCutting()
 	{
+		if (cutLines.size > 1)
+		{
+			lane.pushCut(cutLines);
+			Gdx.app.log(Constants.LOG_TAG, "Ship: Sent Cut Lines to Catwalk");
+		}
 		cutting_state = false;
+		cutLines.clear();
 		goalList.clear();
 	}
 	
@@ -198,6 +242,11 @@ public class Ship {
 	public boolean isCutting()
 	{
 		return cutting_state;
+	}
+	
+	public Array<Vector2> getCutLine()
+	{
+		return cutLines;
 	}
 	
 	/* Setters */
