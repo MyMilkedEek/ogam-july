@@ -54,7 +54,7 @@ public class LevelContext {
 	
 	public void update(float delta)
 	{
-		catwlk.update(delta);
+		catwlk.update(delta, this);
 		
 		Iterator<Enemy> it = enemylist.iterator();
 		while (it.hasNext())
@@ -70,7 +70,18 @@ public class LevelContext {
 		if (player.isDead())
 			player.init(catwlk.getPath()[0], this);
 		
+		// removes enemies that are dead from the level context
+		bringOutYourDead();
 	}
 	
-	
+	/**
+	 * Remove dead enemies from the enemy list.
+	 */
+	void bringOutYourDead()
+	{
+		Iterator<Enemy> it = enemylist.iterator();
+		while (it.hasNext())
+			if (it.next().isDead())
+				it.remove();
+	}
 }

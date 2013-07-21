@@ -13,4 +13,20 @@ public interface Enemy {
 	public boolean collidesWithSegment(Vector2 start, Vector2 end);
 	
 	public Vector2 getPos();
+	
+	/**
+	 * Returns the importance weight of this enemy. This weight is taken into 
+	 * account when calculating which area to be zoned (area with biggest 
+	 * enemy weight remains.
+	 * 
+	 * @return
+	 */
+	public int getWeight();
+	
+	
+	/**
+	 * Sends a signal to this enemy when the play area was zoned.
+	 * @param outside: true if the enemy is outside the final zone.
+	 */
+	public void doZoningSignal(boolean outside);
 }

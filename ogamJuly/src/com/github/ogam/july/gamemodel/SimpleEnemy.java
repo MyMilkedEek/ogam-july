@@ -91,7 +91,9 @@ public class SimpleEnemy implements Enemy{
 	 */
 	public boolean isDead()
 	{
-		return alive;
+		// Here I can set up some funny thing with enemy internal states, to keep them in a dying animation 
+		// after getting the kill signal, but for a simple enemy, he is dead as soon as he gets the kill signal.
+		return !alive;
 	}
 	
 	/**
@@ -120,5 +122,16 @@ public class SimpleEnemy implements Enemy{
 	 */
 	public Vector2 getPos() {
 		return position;
+	}
+
+	@Override
+	public int getWeight() {
+		return 1;
+	}
+
+	@Override
+	public void doZoningSignal(boolean outside) {
+		if (outside)
+			kill();
 	}
 }

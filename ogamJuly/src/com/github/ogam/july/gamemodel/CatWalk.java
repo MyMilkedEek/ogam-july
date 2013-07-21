@@ -1,5 +1,7 @@
 package com.github.ogam.july.gamemodel;
 
+import java.util.Iterator;
+
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
@@ -15,7 +17,8 @@ import com.github.ogam.july.util.OgamMath;
  */
 public class CatWalk {
 
-	Array<Vector2> replacement; // replacement for the current path of the catwalk
+	Array<Vector2> p1; // replacement candidates
+	Array<Vector2> p2;
 
 	Array<Vector2> originalPath; // used for drawing
 	float originalLength;
@@ -28,7 +31,9 @@ public class CatWalk {
 	public CatWalk()
 	{
 		path = new Array<Vector2>(Vector2.class);
-		replacement = null;
+		p1 = new Array<Vector2>(Vector2.class); // replacement candidates
+		p2 = new Array<Vector2>(Vector2.class);
+		
 		
 		originalPath = new Array<Vector2>(Vector2.class);		
 		originalPath.add(new Vector2(0,0));
@@ -42,10 +47,12 @@ public class CatWalk {
 		setPath(originalPath); // sets the current path as the original, and initializes lenght and area as well;		
 	}
 	
-	public void update(float delta)
+	public void update(float delta, LevelContext lc)
 	{
-		if (replacement!= null)
-			setPath(replacement);
+		if (p1.size > 0 || p2.size > 0)
+			setPath(selectReplacement(lc));
+		p1.clear();
+		p2.clear();
 	}
 	
 	
@@ -59,12 +66,8 @@ public class CatWalk {
 		return originalPath.toArray();
 	}
 	
-	public Vector2[] getCandidatePath()
-	{
-		return replacement.toArray();
-	}
-	
-	/**
+
+	/**	
 	 * This is useful to snap the player ship back to the grid whenever needed.
 	 * @param point: the point that we want to test
 	 * @return a point in the path that is closest to the parameter point.
@@ -205,12 +208,6 @@ public class CatWalk {
 	/**
 	 * This vector stores a series of cuts for eventual cutting of the catwalk at the next update cycle
 	 * 
-	 * FIXME: Must make sure that either:
-	 * A- the catwalk is updated within this function call
-	 * B- the catwalk path is updated in the next update cycle, which happens before the ship can be updated.
-	 * 
-	 * FIXME: Test for corner cases when the ship enters/leaves the cut at a polygon corner.
-	 * 
 	 * FIXME: hard to reproduce bug where one node from the path won't be added exists.
 	 * 
 	 * @param cutline
@@ -230,9 +227,6 @@ public class CatWalk {
 				}
 			}
 		
-		// Create the two new paths
-		Array<Vector2> p1 = new Array<Vector2>(Vector2.class);
-		Array<Vector2> p2 = new Array<Vector2>(Vector2.class);
 		
 		int startidx = -1, endidx = -1; // these are the start index for the path segment where the startpoint and end points are located;
 		for (int i = 0; i < path.size; i++)
@@ -247,6 +241,8 @@ public class CatWalk {
 		
 		
 		// creating paths:
+		p1.clear();
+		p2.clear();
 		
 		// Adding nodes from main path
 		int tmpidx;
@@ -301,22 +297,64 @@ public class CatWalk {
 				p1.add(cutline.pop());
 		}
 		
-
-		
-		// Select the replacement path. TODO: Maybe put this in a separate function?
-		
-		float p1len = OgamMath.calcPolygonArea(p1);
-		float p2len = OgamMath.calcPolygonArea(p2);
-		
-		if (p1len > p2len) // simple rule, new path is the largest area
-		{
-			replacement = p1;
-		}
-		else 
-		{
-			replacement = p2;
-		}		
 	}
+	
+	/**
+	 * Selects a replacement path from p1 and p2 for this catwalk.
+	 * Selection is made by the path with the highest enemy weight. If both sides have the same enemy weight, 
+	 * smallest area wins.
+	 * @param lc
+	 * @return
+	 */
+	private Array<Vector2> selectReplacement(LevelContext lc)
+	{
+		Array<Vector2> winner = null;
+		Array<Enemy> e1 = new Array<Enemy>(); // enemies in p1
+		Array<Enemy> e2 = new Array<Enemy>(); // enemies in p2
+		
+		int p1weight = 0;
+		int p2weight = 0;
+		boolean p1won;
+		
+		// TODO: this is inneficient if we have too many enemies
+		Iterator<Enemy> it = lc.enemylist.iterator();
+		while (it.hasNext()) // testing each enemy to see if he is inside p1 or p2
+		{
+			Enemy tmp = it.next();
+			if (tmp.getWeight() != 0) // enemies with weight 0 don't matter, no point in calcing them.
+			{
+				if (OgamMath.isPointInPolygon(tmp.getPos(), p1.toArray()))
+				{
+					e1.add(tmp);
+					p1weight+= tmp.getWeight();
+				}
+				else // if he is not inside p1, he must be inside p2 (not really, but it should work)
+				{
+					e2.add(tmp);
+					p2weight+= tmp.getWeight();
+				}			
+			}
+		}
+		
+		if (p1weight == p2weight) // if the weights are the same, the largest area is zoned out (loses)
+			p1won = (OgamMath.calcPolygonArea(p1) < OgamMath.calcPolygonArea(p2));
+		else // weights are different, smallest weight is zoned out.
+			p1won = (p1weight > p2weight);
+		
+		// sending signals to enemies in the areas.
+		it = e1.iterator();
+		while (it.hasNext())
+			it.next().doZoningSignal(!p1won);
+		it = e2.iterator();
+		while (it.hasNext())
+			it.next().doZoningSignal(p1won);
+		
+		if (p1won) // define which area does not get zoned out.
+			return p1;
+		else
+			return p2;
+	}
+	
 
 	/**
 	 * Returns true if the point "point" is in the segment between the path points idx and idx+1.

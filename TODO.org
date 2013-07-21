@@ -21,19 +21,20 @@
 - [ ] Add score
 - [ ] Add number of player lives (increases with score?)
 - [ ] End level when screen smaller than a certain size
-- [ ] Zoning defined on the number of enemies
+- [X] Zoning defined on the number of enemies
 *** Enemies
 - [ ] Think and add more interesting enemies
 - [ ] Speed/size of enemies change with level size
 - [ ] Player-following enemy
 - [ ] Line-following enemy
 - [ ] Shooting enemy
-** Simple Enemies
-- [ ] Level sends a signal when it changes size
-- [ ] Add simple bouncing enemy dies if outside the path
-- [X] Add Player death (send player to closest position in path)
-- [X] Add simple bouncing enemy kills player on line contact
-- [X] Add simple bouncing enemy
+
+** DONE Simple Enemies (07/21)
+- [X] Level sends a signal when it changes size
+- [X] Add simple bouncing enemy dies if outside the path
+- [X] Add Player death (send player to closest position in path) 
+- [X] Add simple bouncing enemy kills player on line contact (07/21)
+- [X] Add simple bouncing enemy (07/21)
 - [X] Add GameEnvironment Class with all the model instances (07/21)
 - [X] Test new path for collinear points and remove them. (07/21)
 - [X] Cutlines should stop crossing: loops are deleted when crossing cutlines. (07/21)
