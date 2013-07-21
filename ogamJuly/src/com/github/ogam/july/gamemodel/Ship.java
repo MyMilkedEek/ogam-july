@@ -1,5 +1,7 @@
 package com.github.ogam.july.gamemodel;
 
+import java.util.Iterator;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
@@ -20,6 +22,8 @@ public class Ship {
 	Rectangle collisionBox;
 	public Vector2 lastTapLocation; // largely used for debugging
 	
+	LevelContext lc; // FIXME: need this for tap detection, but it creates a circular list of references. fix "do Tap" or put a destructor here to remove the reference
+	
 	/* Cutting related variables */
 	boolean cutting_state; // is the ship cutting now, or moving on the catwalk?
 	boolean first_cut; // needed to get the ship out of the catwalk correctly;
@@ -27,14 +31,14 @@ public class Ship {
 	
 	
 	/* Movement related variables */
-	CatWalk lane; // should this be here, or on a parent "context" object?? Ship needs to know where the lane is to snap its position
+	//CatWalk lane; // should this be here, or on a parent "context" object?? Ship needs to know where the lane is to snap its position
 	public Array<Vector2> goalList;
 	
 	Vector2 position; // center of the ship
 	Vector2 direction; // Direction must be aligned with the axis, can be positive or negative.
 	float speed; // speed of the ship's movement, in pixels/s
 	
-	
+	boolean dead = false;
 	
 	public Ship()
 	{
@@ -48,31 +52,71 @@ public class Ship {
 		goalList = new Array<Vector2>(Vector2.class);
 	}
 
-	
-	public void update(float delta)
+	public void init(Vector2 pos, LevelContext lc)
 	{
-		
-		
+		this.lc = lc;
+		setPos(pos);
+		goalList.clear();
+		cutLines.clear();
+		cutting_state = false;
+		dead = false;
+	}
+	
+
+	
+	public void update(float delta, LevelContext lc)
+	{
+		if (isDead()) // if player is dead, do nothing
+			return;
 		
 		// if the ship has an objective, move following the rules of the objective
 		// else, move using the "free movement" (keyboard) rules
-		
+		// TODO: Maybe separate: select dir, movement, validation?
 		if (goalList.size > 0)
-			doGoalMove(delta);
+			doGoalMove(delta, lc);
 		else
-			doKeyMove(delta);
+			doKeyMove(delta);		
 		
-		// TODO: probably should move the "test to see if we are back at the lane" check here 
-		// (from outside the "do move" code) to avoid code duplication???
-		
+		// test if enemies kill me
+		// TODO: this can probably be improved
+		if (cutLines.size > 1) // testing if there is a line for enemies to touch
+		{
+			Iterator<Enemy> danger = lc.enemylist.iterator();		
+			while (danger.hasNext())
+			{
+				Enemy tmp = danger.next();
+				if (tmp.canKillPlayer())
+				{
+					for (int i = 1; i < cutLines.size; i++)
+					{
+						if (tmp.collidesWithSegment(cutLines.get(i-1), cutLines.get(i)))
+						{
+							kill();
+							return;
+						}
+					}
+				}
+			}
+		}
 	}
 
+	/* 
+	 * Sets this player to the "dead" state
+	 */
+	public void kill()
+	{
+		dead = true;
+		cutLines.clear();
+		goalList.clear();
+	}
+	
+	
 	/** 
 	 * Calculates the new direction based on the goal and the delta-time, validates it, and put the ship in the new position.
 	 * TODO: I should probably break this down into different functions to do each part of calculation/validation and operation.
 	 * @param delta
 	 */
-	public void doGoalMove(float delta)
+	public void doGoalMove(float delta, LevelContext lc)
 	{
 		boolean doEndCut = false;
 		direction.x = position.x + Math.signum(goalList.first().x - position.x)*(speed*delta);
@@ -92,7 +136,7 @@ public class Ship {
 			if (first_cut)
 			{
 				// if it is the first movement after cut, we just check if the ship entered the polygon or not.
-				if (!OgamMath.isPointInPolygon(direction, lane.getPath())) 
+				if (!OgamMath.isPointInPolygon(direction, lc.catwlk.getPath())) 
 				{
 					direction.set(position);
 					doEndCut = true;
@@ -101,7 +145,7 @@ public class Ship {
 			}
 			else
 			{
-				Vector2 tmp = lane.intersectionInPath(position, direction);
+				Vector2 tmp = lc.catwlk.intersectionInPath(position, direction);
 				if (tmp != null) // crossed the treshold, cutting is over
 				{
 					direction = tmp;
@@ -120,7 +164,7 @@ public class Ship {
 		setPos(direction);
 		direction.set(0, 0);
 		if (doEndCut)
-			endCutting();
+			endCutting(lc);
 		
 	}
 	
@@ -157,12 +201,10 @@ public class Ship {
 			int index = 1;
 			while ((index < cutLines.size - 2)&&(!Intersector.intersectSegments(cutLines.get(index-1),cutLines.get(index),lastStart,lastEnd,intersect)))
 			{
-//				Gdx.app.debug(Constants.DEBUG_TAG, "No Intersection between "+(index-1)+" and "+index);
 				index++;
 			}
 			if (index != cutLines.size-2)
 			{
-//				Gdx.app.debug(Constants.DEBUG_TAG, "Intersection between "+(index-1)+" and "+index+"!!!");
 				while (cutLines.size > index)
 					cutLines.pop();
 				cutLines.add(intersect);
@@ -184,6 +226,9 @@ public class Ship {
 	 */
 	public void doTap(Vector2 tap)
 	{
+		if (isDead()) // if the player is dead, does not react to taps.
+			return;
+		
 		lastTapLocation = tap;
 		
 		// If the ship itself is tapped, it stops (clear goal list) and switches on the cutting state
@@ -196,9 +241,8 @@ public class Ship {
 		{
 			Gdx.app.log(Constants.LOG_TAG, "Movement Target was tapped");
 			goalList.clear(); // clear current goal list
-			calculateGoals(tap); // calculate new goals
+			calculateGoals(tap, lc); // calculate new goals
 		}
-		
 	}
 	
 	/**
@@ -209,7 +253,7 @@ public class Ship {
 	 * 
 	 * @param finalGoal
 	 */
-	void calculateGoals(Vector2 finalGoal)
+	void calculateGoals(Vector2 finalGoal, LevelContext lc)
 	{
 		if (cutting_state) 
 		{
@@ -227,7 +271,7 @@ public class Ship {
 		else
 		{
 			// calculates a list of subgoals in the path necessary to reach the goal position
-			goalList.addAll(lane.calculateSubGoals(position, finalGoal));
+			goalList.addAll(lc.catwlk.calculateSubGoals(position, finalGoal));
 		}
 	}
 	
@@ -251,11 +295,11 @@ public class Ship {
 		goalList.clear(); // this only matters for mouse input.
 	}
 	
-	void endCutting()
+	void endCutting(LevelContext lc)
 	{
 		if (cutLines.size > 1)
 		{
-			lane.pushCut(cutLines); // Attention! This clears the cutlines
+			lc.catwlk.pushCut(cutLines); // Attention! This clears the cutlines
 			Gdx.app.log(Constants.LOG_TAG, "Ship: Sent Cut Lines to Catwalk");
 		}
 		cutting_state = false;
@@ -278,6 +322,11 @@ public class Ship {
 		return cutting_state;
 	}
 	
+	public boolean isDead()
+	{
+		return dead;
+	}
+	
 	public Array<Vector2> getCutLine()
 	{
 		return cutLines;
@@ -285,11 +334,6 @@ public class Ship {
 	
 	/* Setters */
 	
-	
-	public void setLane(CatWalk l)
-	{
-		lane = l;
-	}
 	
 	/**
 	 * Forcefully changes the position of the ship

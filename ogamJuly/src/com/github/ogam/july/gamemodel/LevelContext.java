@@ -29,6 +29,7 @@ public class LevelContext {
 	public LevelContext()
 	{
 		dice = new Random();
+		player = new Ship();
 		enemylist = new Array<Enemy>(Enemy.class);
 	}
 
@@ -41,9 +42,7 @@ public class LevelContext {
 
 		// creates catwalk, player, etc, based on these parameters
 		catwlk = new CatWalk();
-		player = new Ship();
-		player.setPos(catwlk.getPath()[0]);
-		player.setLane(catwlk);
+		player.init(catwlk.getPath()[0], this);
 		
 		for (int i = 0; i < 3; i++)
 		{
@@ -65,9 +64,12 @@ public class LevelContext {
 			tmp.update(delta, this);
 		}
 		
-		player.update(delta);
+		player.update(delta,this);
 		
-
+		// revive the player -- probably want to reduce lives and stuff here.
+		if (player.isDead())
+			player.init(catwlk.getPath()[0], this);
+		
 	}
 	
 	

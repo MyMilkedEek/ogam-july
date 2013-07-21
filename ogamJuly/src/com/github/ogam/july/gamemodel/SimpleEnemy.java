@@ -2,6 +2,7 @@ package com.github.ogam.july.gamemodel;
 
 import java.util.Random;
 
+import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector2;
 
 /**
@@ -110,7 +111,8 @@ public class SimpleEnemy implements Enemy{
 	 */
 	public boolean collidesWithSegment(Vector2 start, Vector2 end)
 	{
-		return false;
+		float dist = Intersector.distanceLinePoint(start, end, position);
+		return dist < size;
 	}
 
 	/**
