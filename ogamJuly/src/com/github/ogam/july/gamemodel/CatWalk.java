@@ -20,6 +20,10 @@ import com.github.ogam.july.util.OgamMath;
  */
 public class CatWalk {
 	
+	// For debug;
+	Array<Vector2> p1; // candidate path 1;
+	Array<Vector2> p2; // candidate path 2;
+	
 	Array<Vector2> originalPath; // used for drawing
 	
 	Array<Vector2> path;
@@ -29,6 +33,9 @@ public class CatWalk {
 	{
 		
 		path = new Array<Vector2>(Vector2.class);
+		p1 = new Array<Vector2>(Vector2.class);
+		p2 = new Array<Vector2>(Vector2.class);
+		
 		originalPath = new Array<Vector2>(Vector2.class);
 		
 		originalPath.add(new Vector2(0,0));
@@ -38,7 +45,6 @@ public class CatWalk {
 		
 		path.addAll(originalPath);
 		updatePathLength();
-		
 		
 	}
 	
@@ -50,6 +56,14 @@ public class CatWalk {
 	public Vector2[] getOriginalPath()
 	{
 		return originalPath.toArray();
+	}
+	
+	public Vector2[] getCandidatePath(int i)
+	{
+		if (i == 1)
+			return p1.toArray();
+		else 
+			return p2.toArray();
 	}
 	
 	/**
@@ -105,6 +119,7 @@ public class CatWalk {
 		int j = path.size - 1;
 		for (int i = 0; i < path.size; i++)
 		{
+			// FIXME: North/East collisions are not being correctly tested
 			if (Intersector.intersectSegments(start, end, path.get(j), path.get(i), ret))
 				return ret;
 			j = i;
@@ -196,12 +211,134 @@ public class CatWalk {
 	 * A- the catwalk is updated within this function call
 	 * B- the catwalk path is updated in the next update cycle, which happens before the ship can be updated.
 	 * 
+	 * FIXME: Test for corner cases when the ship enters/leaves the cut at a polygon corner.
+	 * 
+	 * FIXME: hard to reproduce bug where one node from the path won't be added exists.
+	 * 
 	 * @param cutline
 	 */
 	public void pushCut(Array<Vector2> cutline)
 	{
+		// FIXME: if the cutline has size 2, do an extra test to see if the line is not within the catwalk. 
+		// This is not necessary if the bug at "OgamMath.isPointInPolygon" is fixed.		
+		if (cutline.size == 2)
+			for (int i = 1; i < path.size; i++)
+			{
+				if ((OgamMath.isPointInSegment(path.get(i-1), path.get(i), cutline.first()))
+						&&(OgamMath.isPointInSegment(path.get(i-1), path.get(i), cutline.peek())))
+				{
+					System.out.println("fail");
+					return;						
+				}
+			}
+		
+		// Create the two new paths
+		p1.clear();
+		p2.clear();
+		
+		int startidx = -1, endidx = -1; // these are the start index for the path segment where the startpoint and end points are located;
+		for (int i = 0; i < path.size; i++)
+		{
+			if (startidx != -1 && endidx != -1)
+				break;
+			if (startidx == -1 && OgamMath.isPointInSegment(path.get(i), path.get((i+1)%path.size),cutline.first()))
+				startidx = i;
+			if (endidx == -1 && OgamMath.isPointInSegment(path.get(i), path.get((i+1)%path.size),cutline.peek()))
+				endidx = i;
+		}
+		
+		
+		// creating paths:
+		
+		// Adding nodes from main path
+		int tmpidx;
+		if (endidx == startidx) // special case, if both endpoints are in the same segment - only one gets the entire path
+		{
+			float enddist = OgamMath.manhattanDistance(path.get(endidx), cutline.peek());
+			float startdist = OgamMath.manhattanDistance(path.get(startidx),cutline.first());
+			
+			Array<Vector2> tp;
+			if (startdist < enddist) // start points come first
+				tp = p1;
+			else 
+				tp = p2;
+
+			for (int i = 0; i < path.size; i++)
+			{
+				tp.add(new Vector2(path.get((i + endidx + 1)%path.size)));
+			}			
+			
+			
+			// Adding nodes from cut:
+			// TODO: I don't quite understand why the order must be reversed if start and end are in the same segment.
+			// Study this black magic!
+			for (int i = 0; i < cutline.size; i++)
+				p1.add(new Vector2(cutline.get(i)));
+			
+			while (cutline.size > 0) // p2 nodes are added in reverse -- from end to start
+				p2.add(cutline.pop());
+		}
+		else // both endpoints are in different segments: regular case
+		{
+			tmpidx = (endidx + 1)%path.size;
+			while (tmpidx != (startidx + 1)%path.size)
+			{
+				p2.add(new Vector2(path.get(tmpidx)));
+				tmpidx = (tmpidx + 1)%path.size;
+			}
+			
+			tmpidx = (startidx + 1)%path.size;
+			while (tmpidx != (endidx + 1)%path.size)
+			{
+				p1.add(new Vector2(path.get(tmpidx)));
+				tmpidx = (tmpidx + 1)%path.size;
+			}
+			
+			
+			// Adding nodes from cut:
+			for (int i = 0; i < cutline.size; i++)
+				p2.add(new Vector2(cutline.get(i)));
+			
+			while (cutline.size > 0) // p1 nodes are added in reverse -- from end to start
+				p1.add(cutline.pop());
+		}
+		
+
+		
+		// Select and Replace one of the Paths
+		// TODO: Maybe put this somewhere else in order to allow for animations, etc.
+		
+		float p1len = OgamMath.calcPolygonArea(p1);
+		float p2len = OgamMath.calcPolygonArea(p2);
+		
+		float tmparea;
+		Array<Vector2> tmppath;
+		
+		if (p1len > p2len) // simple rule, new path is the largest area
+		{
+			tmparea = p1len;
+			tmppath = p1;
+		}
+		else 
+		{
+			tmparea = p2len;
+			tmppath = p2;
+		}
+		
+		path.clear();
+		for (int i = 0; i < tmppath.size; i++)
+			path.add(new Vector2(tmppath.get(i)));
+		updatePathLength();
 		
 	}
+
+	/**
+	 * Creates two paths based on the current path and a cut line.
+	 * @param cutline
+	 * @return
+	 */
+	
+	
 	
 	/**
 	 * Returns true if the point "point" is in the segment between the path points idx and idx+1.

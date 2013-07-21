@@ -66,13 +66,18 @@ public class Ship {
 		if (goalList.size > 0)
 			doGoalMove(delta);
 		else
-			doFreeMove(delta);
+			doKeyMove(delta);
 		
 		// TODO: probably should move the "test to see if we are back at the lane" check here 
 		// (from outside the "do move" code) to avoid code duplication???
 		
 	}
-	
+
+	/** 
+	 * Calculates the new direction based on the goal and the delta-time, validates it, and put the ship in the new position.
+	 * TODO: I should probably break this down into different functions to do each part of calculation/validation and operation.
+	 * @param delta
+	 */
 	public void doGoalMove(float delta)
 	{
 		boolean doEndCut = false;
@@ -109,27 +114,14 @@ public class Ship {
 					doEndCut = true;
 				}
 			}
-
-			// if direction is different than position while cutting, 
-			// we move, and we need to possibly add a point to the cutting line
+			
+			// if direction is different than position while cutting (the move is valid if it got 
+			// to this point and is not 0), we need to possibly add a cutting point
 			if (!direction.epsilonEquals(position, Constants.EPSILON))
 			{
-
-				if (cutLines.size == 1) // only one point, we need to add another one.
-				{
-					cutLines.add(direction.cpy());
-				}
-				else // more than one point exist. If last three points are not colinear, add a new one.
-				{
-					Vector2 old = cutLines.pop();
-					if (!OgamMath.testCollinear(direction, old, cutLines.peek())) // points are not collinear, add the old back.
-						cutLines.add(old);
-					cutLines.add(direction.cpy());
-				}
+				addCutPoint(position,direction);
 			}
 		}
-		
-		
 		
 		setPos(direction);
 		direction.set(0, 0);
@@ -138,7 +130,55 @@ public class Ship {
 		
 	}
 	
-	public void doFreeMove(float delta)
+	/** 
+	 * Adds a new point to the cut vector based on the movement of the ship.
+	 * This function assumes that the movement was already tested for validity.
+	 * @param start
+	 * @param end
+	 */
+	public void addCutPoint(Vector2 start, Vector2 end)
+	{
+		if (cutLines.size == 1) // only one point, we need to add another one.
+		{
+			cutLines.add(direction.cpy());
+			
+			return;
+		}
+		else // more than one point exist. If last three points are not colinear, add a new one.
+		{
+			Vector2 old = cutLines.pop();
+			if (!OgamMath.testCollinear(direction, old, cutLines.peek())) // points are not collinear, add the old back.
+				cutLines.add(old);
+			cutLines.add(direction.cpy());
+		}
+		
+		// Finally, we need to test if the new line crosses any of the old ones.
+		if (cutLines.size > 4)
+		{
+			Vector2 lastStart = cutLines.get(cutLines.size-2);
+			Vector2 lastEnd = cutLines.peek();	
+			Vector2 intersect = new Vector2();
+		
+
+			int index = 1;
+			while ((index < cutLines.size - 2)&&(!Intersector.intersectSegments(cutLines.get(index-1),cutLines.get(index),lastStart,lastEnd,intersect)))
+			{
+//				Gdx.app.debug(Constants.DEBUG_TAG, "No Intersection between "+(index-1)+" and "+index);
+				index++;
+			}
+			if (index != cutLines.size-2)
+			{
+//				Gdx.app.debug(Constants.DEBUG_TAG, "Intersection between "+(index-1)+" and "+index+"!!!");
+				while (cutLines.size > index)
+					cutLines.pop();
+				cutLines.add(intersect);
+				cutLines.add(lastEnd);
+			}
+		}
+	}
+	
+	
+	public void doKeyMove(float delta)
 	{
 		
 	}
@@ -221,7 +261,7 @@ public class Ship {
 	{
 		if (cutLines.size > 1)
 		{
-			lane.pushCut(cutLines);
+			lane.pushCut(cutLines); // Attention! This clears the cutlines
 			Gdx.app.log(Constants.LOG_TAG, "Ship: Sent Cut Lines to Catwalk");
 		}
 		cutting_state = false;

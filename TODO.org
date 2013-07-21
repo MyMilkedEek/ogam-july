@@ -4,11 +4,13 @@
   borders)
 
 * TASKLIST
-- [ ] Make cutlines stop crossing (should the ship die if the cutlines
-  cross? or just delete the loops?)
-- [ ] Add basic catwalk cutting after cutLine is finished
+- [ ] Test new path for collinear points and remove them.
+- [ ] Add simple bouncing enemy
+- [ ] Add GameEnvironment Class with all the model instances
+- [X] Cutlines should stop crossing: loops are deleted when crossing cutlines. (07/19)
+- [X] Add catwalk cutting after cutline is finished (selection conditions) (07/19)
 
-- [ ] Do the rest of the game :-)
+
 
 
 * WISHLIST
@@ -16,3 +18,4 @@
   position (direction) from the logic that moves the ship to this new
   position. Probably need also to create a new function to validate
   the new position (when trying to go out of the field)
+  

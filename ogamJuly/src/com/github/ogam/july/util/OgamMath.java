@@ -1,6 +1,9 @@
 package com.github.ogam.july.util;
 
+import java.util.Iterator;
+
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
 
 /**
  * Static class with maths particular to this game
@@ -92,6 +95,8 @@ public class OgamMath {
 	
 	/**
 	 * Tests if the point is inside the polygon or not. This is an adaptation from math.Intersector.pointInPolygon
+	 * FIXME: This is returning a wrong result if the point is in the NORTH or EAST line of the poligon (out, when it should be in)
+	 * 
 	 * @param point
 	 * @param polygon
 	 * @return
@@ -130,4 +135,36 @@ public class OgamMath {
 			return true;
 		return false;
 	}
+
+	/**
+	 * Calculates the area of a polygon defined by an Array of points.
+	 * Adapted from gdx.math.polygon to work with GDX Arrays (silly GDX...)
+	 * 
+	 * @param p Array with 3 or more vector2
+	 * @return Area, or -1 if Array has less than 3 vectors.
+	 */
+	public static float calcPolygonArea (Array<Vector2> p) {
+		float area = 0;
+		if (p.size < 3)
+			return -1;
+
+		Vector2 prev = p.peek();
+		Vector2 cur;
+
+		Iterator<Vector2> it = p.iterator();
+
+		while (it.hasNext())
+		{
+			cur = it.next();
+			area += prev.x * cur.y;
+			area -= cur.x * prev.y;
+			prev = cur;
+		}
+		
+		area = Math.abs(area/2);
+		
+		return area;
+	}
+
+	
 }

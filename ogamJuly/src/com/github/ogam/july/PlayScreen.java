@@ -105,6 +105,8 @@ public class PlayScreen implements Screen {
 	{
 		Vector2[] lines = catwlk.getPath();
 		Vector2[] olines = catwlk.getOriginalPath();
+		Vector2[] p1 = catwlk.getCandidatePath(1);
+		Vector2[] p2 = catwlk.getCandidatePath(2);
 		
 		lineDrawer.begin(ShapeType.Line);
 		
@@ -115,6 +117,18 @@ public class PlayScreen implements Screen {
 		lineDrawer.setColor(Color.WHITE);
 		for (int i = 0; i < lines.length; i++)
 			lineDrawer.line(lines[i].x, lines[i].y, lines[(i+1)%lines.length].x, lines[(i+1)%lines.length].y);
+		
+// Candidate line rendering		
+//		Color[]  c = {Color.GREEN, Color.RED, Color.BLUE, Color.YELLOW, Color.MAGENTA, Color.CYAN};
+//		for (int i = 0; i < p1.length; i++)
+//		{
+//			lineDrawer.setColor(c[i%c.length]);
+//			lineDrawer.line(p1[i].x, p1[i].y, p1[(i+1)%p1.length].x, p1[(i+1)%p1.length].y);
+//		}
+//		
+//		lineDrawer.setColor(Color.YELLOW);
+//		for (int i = 0; i < p2.length; i++)
+//			lineDrawer.line(p2[i].x, p2[i].y, p2[(i+1)%p2.length].x, p2[(i+1)%p2.length].y);
 
 		lineDrawer.end();
 	}
