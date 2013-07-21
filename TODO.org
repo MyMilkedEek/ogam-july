@@ -2,11 +2,37 @@
 - [ ] SW bug: cutLines are not drawn over SW border, but they are
   drawn over NE border. (They should never be drawn over catwalk
   borders)
+- [ ] Calculate subobjective bug: In one case, I got a "-1 array out
+  of bounds" segfault. needs to investigate.
 
 * TASKLIST
-- [ ] Add Player death (send player to closest position in path)
-- [ ] Add simple bouncing enemy kills player on line contact
+- [ ] *Ship* - remove "goal selection" from "do tap" and move it to
+  "update". In this way, the ship won't need a copy of LC anymore.
+** Graphics
+- [ ] "Game Drawer" object to draw gameplay elements
+- [ ] Widgets for the interface
+** Interface
+- [ ] Game over if number of lives is 0
+- [ ] Level gets more difficult
+- [ ] About/tutorial/hints
+- [ ] Quit game
+** Gameplay
+*** Game
+- [ ] Add score
+- [ ] Add number of player lives (increases with score?)
+- [ ] End level when screen smaller than a certain size
+- [ ] Zoning defined on the number of enemies
+*** Enemies
+- [ ] Think and add more interesting enemies
+- [ ] Speed/size of enemies change with level size
+- [ ] Player-following enemy
+- [ ] Line-following enemy
+- [ ] Shooting enemy
+** Simple Enemies
+- [ ] Level sends a signal when it changes size
 - [ ] Add simple bouncing enemy dies if outside the path
+- [X] Add Player death (send player to closest position in path)
+- [X] Add simple bouncing enemy kills player on line contact
 - [X] Add simple bouncing enemy
 - [X] Add GameEnvironment Class with all the model instances (07/21)
 - [X] Test new path for collinear points and remove them. (07/21)
