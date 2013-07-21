@@ -1,5 +1,11 @@
 package com.github.ogam.july.gamemodel;
 
+import java.util.Iterator;
+import java.util.Random;
+
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
+
 /**
  * This class represents all the values of the game model for a level. This includes:
  * 
@@ -11,8 +17,10 @@ package com.github.ogam.july.gamemodel;
  */
 public class LevelContext {
 
+	Random dice;
 	public Ship player;
 	public CatWalk catwlk;
+	public Array<Enemy> enemylist;
 	
 
 	/** 
@@ -20,6 +28,8 @@ public class LevelContext {
 	 */
 	public LevelContext()
 	{
+		dice = new Random();
+		enemylist = new Array<Enemy>(Enemy.class);
 	}
 
 	/**
@@ -35,12 +45,29 @@ public class LevelContext {
 		player.setPos(catwlk.getPath()[0]);
 		player.setLane(catwlk);
 		
+		for (int i = 0; i < 3; i++)
+		{
+			SimpleEnemy tmp = new SimpleEnemy();
+			tmp.init(new Vector2((dice.nextFloat()*100+100),(dice.nextFloat()*100+100)), this);
+			enemylist.add(tmp);
+		}
 	}
 	
 	public void update(float delta)
 	{
 		catwlk.update(delta);
+		
+		Iterator<Enemy> it = enemylist.iterator();
+		while (it.hasNext())
+		{
+			Enemy tmp = it.next();
+			tmp.calcMove(delta, this);
+			tmp.update(delta, this);
+		}
+		
 		player.update(delta);
+		
+
 	}
 	
 	

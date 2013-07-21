@@ -1,8 +1,5 @@
 package com.github.ogam.july.gamemodel;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
@@ -20,9 +17,6 @@ import com.github.ogam.july.util.OgamMath;
 public class Ship {
 
 	public static final int SHIPSIZE = 16;
-	
-	
-	
 	Rectangle collisionBox;
 	public Vector2 lastTapLocation; // largely used for debugging
 	

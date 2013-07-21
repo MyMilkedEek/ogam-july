@@ -4,10 +4,10 @@
   borders)
 
 * TASKLIST
-- [ ] Add simple bouncing enemy
 - [ ] Add Player death (send player to closest position in path)
 - [ ] Add simple bouncing enemy kills player on line contact
 - [ ] Add simple bouncing enemy dies if outside the path
+- [X] Add simple bouncing enemy
 - [X] Add GameEnvironment Class with all the model instances (07/21)
 - [X] Test new path for collinear points and remove them. (07/21)
 - [X] Cutlines should stop crossing: loops are deleted when crossing cutlines. (07/21)

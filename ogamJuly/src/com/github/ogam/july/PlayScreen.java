@@ -1,5 +1,7 @@
 package com.github.ogam.july;
 
+import java.util.Iterator;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
@@ -48,9 +50,6 @@ public class PlayScreen implements Screen {
 	{
 		lcontext.init();
 		
-		
-
-
 		/* Input Initialization */
 		// TODO: We probably should use a multiplexer to add the ability of a separate input processor for GUI
 		
@@ -83,6 +82,7 @@ public class PlayScreen implements Screen {
 		
 		lineDrawer.setProjectionMatrix(c.combined);
 		renderDebugCatwalk();
+		renderDebugEnemy();
 		renderDebugShip();
 		
 		// Might want to add a FPS limiter here in the future to
@@ -169,6 +169,19 @@ public class PlayScreen implements Screen {
 		
 		
 		lineDrawer.end();
+	}
+	
+	private void renderDebugEnemy()
+	{
+		Iterator<Enemy> it = lcontext.enemylist.iterator();
+		while (it.hasNext())
+		{
+			Enemy tmp = it.next();
+			lineDrawer.begin(ShapeType.Filled);
+			lineDrawer.setColor(Color.RED);
+			lineDrawer.circle(tmp.getPos().x,tmp.getPos().y,10);
+			lineDrawer.end();
+		}
 	}
 	
 	

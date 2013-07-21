@@ -1,11 +1,6 @@
 package com.github.ogam.july.gamemodel;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Intersector;
-import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.github.ogam.july.util.Constants;
@@ -20,9 +15,8 @@ import com.github.ogam.july.util.OgamMath;
  */
 public class CatWalk {
 
-	
 	Array<Vector2> replacement; // replacement for the current path of the catwalk
-	
+
 	Array<Vector2> originalPath; // used for drawing
 	float originalLength;
 	float originalArea;
@@ -33,7 +27,6 @@ public class CatWalk {
 	
 	public CatWalk()
 	{
-		
 		path = new Array<Vector2>(Vector2.class);
 		replacement = null;
 		
@@ -314,9 +307,6 @@ public class CatWalk {
 		
 		float p1len = OgamMath.calcPolygonArea(p1);
 		float p2len = OgamMath.calcPolygonArea(p2);
-		
-		float tmparea;
-		Array<Vector2> tmppath;
 		
 		if (p1len > p2len) // simple rule, new path is the largest area
 		{
