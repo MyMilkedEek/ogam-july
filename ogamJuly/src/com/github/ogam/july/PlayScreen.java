@@ -20,12 +20,12 @@ public class PlayScreen implements Screen {
 
 	OgamJulyMain g;
 	
-	CatWalk catwlk;
-	Ship playership;
+
 	ShapeRenderer lineDrawer;
 	OrthographicCamera c;
 	
-	
+
+	LevelContext lcontext;
 	
 	public PlayScreen(OgamJulyMain link)
 	{
@@ -33,6 +33,7 @@ public class PlayScreen implements Screen {
 		lineDrawer = new ShapeRenderer();
 		c = new OrthographicCamera();
 
+		lcontext = new LevelContext();
 		
 		// Temporary
 		c.setToOrtho(false, 800, 480);
@@ -45,10 +46,10 @@ public class PlayScreen implements Screen {
 	
 	public void init()
 	{
-		catwlk = new CatWalk();
-		playership = new Ship();
-		playership.setPos(catwlk.getPath()[0]);
-		playership.setLane(catwlk);
+		lcontext.init();
+		
+		
+
 
 		/* Input Initialization */
 		// TODO: We probably should use a multiplexer to add the ability of a separate input processor for GUI
@@ -62,9 +63,9 @@ public class PlayScreen implements Screen {
 		boolean isKeyboardPresent = false;
 
 		if ( isKeyboardPresent ) {
-            playerInputProcessor = new PlayerKeyListener(playership);
+            playerInputProcessor = new PlayerKeyListener(lcontext.player);
         } else {
-            playerInputProcessor = new GestureDetector(new PlayerTouchListener(playership,c));
+            playerInputProcessor = new GestureDetector(new PlayerTouchListener(lcontext.player,c));
         }
 		
 		// TODO: change this to an input Multiplexer to separate GUI input from Player input
@@ -96,17 +97,13 @@ public class PlayScreen implements Screen {
 	 */
 	public void update(float delta)
 	{
-		playership.update(delta);
+		lcontext.update(delta);
 	}
 	
-	
-
 	private void renderDebugCatwalk()
 	{
-		Vector2[] lines = catwlk.getPath();
-		Vector2[] olines = catwlk.getOriginalPath();
-		Vector2[] p1 = catwlk.getCandidatePath(1);
-		Vector2[] p2 = catwlk.getCandidatePath(2);
+		Vector2[] lines = lcontext.catwlk.getPath();
+		Vector2[] olines = lcontext.catwlk.getOriginalPath();
 		
 		lineDrawer.begin(ShapeType.Line);
 		
@@ -125,21 +122,17 @@ public class PlayScreen implements Screen {
 //			lineDrawer.setColor(c[i%c.length]);
 //			lineDrawer.line(p1[i].x, p1[i].y, p1[(i+1)%p1.length].x, p1[(i+1)%p1.length].y);
 //		}
-//		
-//		lineDrawer.setColor(Color.YELLOW);
-//		for (int i = 0; i < p2.length; i++)
-//			lineDrawer.line(p2[i].x, p2[i].y, p2[(i+1)%p2.length].x, p2[(i+1)%p2.length].y);
 
 		lineDrawer.end();
 	}
 	
 	private void renderDebugShip()
 	{
-		Vector2 shipcenter = playership.getPos();
+		Vector2 shipcenter = lcontext.player.getPos();
 		
 		// NOTE TO MME: Do you have the most recent libGDX nightly build? I think "Filled Rectangle" has been replaced with "filled"
 
-		Array<Vector2> tmp = playership.getCutLine();
+		Array<Vector2> tmp = lcontext.player.getCutLine();
 		if (tmp.size > 0) // draw the cutline
 		{
 			lineDrawer.begin(ShapeType.Line);
@@ -154,7 +147,7 @@ public class PlayScreen implements Screen {
 		lineDrawer.begin(ShapeType.Filled);
 		
 		
-		if (playership.isCutting())
+		if (lcontext.player.isCutting())
 			lineDrawer.setColor(Color.RED);
 		else
 			lineDrawer.setColor(Color.BLUE);
@@ -162,16 +155,16 @@ public class PlayScreen implements Screen {
 		lineDrawer.rect(shipcenter.x - Ship.SHIPSIZE / 2, shipcenter.y - Ship.SHIPSIZE / 2, Ship.SHIPSIZE, Ship.SHIPSIZE);
 		
 		
-		if (playership.lastTapLocation != null)
+		if (lcontext.player.lastTapLocation != null)
 		{
 			lineDrawer.setColor(Color.RED);
-			lineDrawer.circle(playership.lastTapLocation.x, playership.lastTapLocation.y, 4);
+			lineDrawer.circle(lcontext.player.lastTapLocation.x, lcontext.player.lastTapLocation.y, 4);
 		}
 		
 		lineDrawer.setColor(Color.WHITE);
-		for (int i = 0; i < playership.goalList.size; i++)
+		for (int i = 0; i < lcontext.player.goalList.size; i++)
 		{
-			lineDrawer.circle(playership.goalList.get(i).x, playership.goalList.get(i).y, 3);
+			lineDrawer.circle(lcontext.player.goalList.get(i).x, lcontext.player.goalList.get(i).y, 3);
 		}
 		
 		

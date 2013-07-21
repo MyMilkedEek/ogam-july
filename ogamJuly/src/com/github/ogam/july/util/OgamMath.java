@@ -166,5 +166,26 @@ public class OgamMath {
 		return area;
 	}
 
-	
+	/** 
+	 * Adds the length of all the vectors in a polygon
+	 * @param p
+	 * @return
+	 */
+	public static float calcPolygonLength(Array<Vector2> p)
+	{
+		float ret = 0;
+		Vector2 prev = p.peek();
+		Vector2 curr;
+
+		Iterator<Vector2> it = p.iterator();
+		
+		while (it.hasNext())
+		{
+			curr = it.next();
+			ret += OgamMath.manhattanDistance(prev,curr);
+			prev = curr;
+		}
+		return ret;
+	}
+
 }

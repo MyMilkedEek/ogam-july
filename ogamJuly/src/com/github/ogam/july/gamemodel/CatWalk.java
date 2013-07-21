@@ -19,34 +19,42 @@ import com.github.ogam.july.util.OgamMath;
  *
  */
 public class CatWalk {
+
 	
-	// For debug;
-	Array<Vector2> p1; // candidate path 1;
-	Array<Vector2> p2; // candidate path 2;
+	Array<Vector2> replacement; // replacement for the current path of the catwalk
 	
 	Array<Vector2> originalPath; // used for drawing
+	float originalLength;
+	float originalArea;
 	
 	Array<Vector2> path;
 	float pathLength;
+	float pathArea;
 	
 	public CatWalk()
 	{
 		
 		path = new Array<Vector2>(Vector2.class);
-		p1 = new Array<Vector2>(Vector2.class);
-		p2 = new Array<Vector2>(Vector2.class);
+		replacement = null;
 		
-		originalPath = new Array<Vector2>(Vector2.class);
-		
+		originalPath = new Array<Vector2>(Vector2.class);		
 		originalPath.add(new Vector2(0,0));
 		originalPath.add(new Vector2(300,0));
 		originalPath.add(new Vector2(300,300));
 		originalPath.add(new Vector2(0,300));
 		
-		path.addAll(originalPath);
-		updatePathLength();
+		originalLength = OgamMath.calcPolygonLength(originalPath);
+		originalArea = OgamMath.calcPolygonArea(originalPath);
 		
+		setPath(originalPath); // sets the current path as the original, and initializes lenght and area as well;		
 	}
+	
+	public void update(float delta)
+	{
+		if (replacement!= null)
+			setPath(replacement);
+	}
+	
 	
 	public Vector2[] getPath()
 	{
@@ -58,12 +66,9 @@ public class CatWalk {
 		return originalPath.toArray();
 	}
 	
-	public Vector2[] getCandidatePath(int i)
+	public Vector2[] getCandidatePath()
 	{
-		if (i == 1)
-			return p1.toArray();
-		else 
-			return p2.toArray();
+		return replacement.toArray();
 	}
 	
 	/**
@@ -233,8 +238,8 @@ public class CatWalk {
 			}
 		
 		// Create the two new paths
-		p1.clear();
-		p2.clear();
+		Array<Vector2> p1 = new Array<Vector2>(Vector2.class);
+		Array<Vector2> p2 = new Array<Vector2>(Vector2.class);
 		
 		int startidx = -1, endidx = -1; // these are the start index for the path segment where the startpoint and end points are located;
 		for (int i = 0; i < path.size; i++)
@@ -305,8 +310,7 @@ public class CatWalk {
 		
 
 		
-		// Select and Replace one of the Paths
-		// TODO: Maybe put this somewhere else in order to allow for animations, etc.
+		// Select the replacement path. TODO: Maybe put this in a separate function?
 		
 		float p1len = OgamMath.calcPolygonArea(p1);
 		float p2len = OgamMath.calcPolygonArea(p2);
@@ -316,30 +320,14 @@ public class CatWalk {
 		
 		if (p1len > p2len) // simple rule, new path is the largest area
 		{
-			tmparea = p1len;
-			tmppath = p1;
+			replacement = p1;
 		}
 		else 
 		{
-			tmparea = p2len;
-			tmppath = p2;
-		}
-		
-		path.clear();
-		for (int i = 0; i < tmppath.size; i++)
-			path.add(new Vector2(tmppath.get(i)));
-		updatePathLength();
-		
+			replacement = p2;
+		}		
 	}
 
-	/**
-	 * Creates two paths based on the current path and a cut line.
-	 * @param cutline
-	 * @return
-	 */
-	
-	
-	
 	/**
 	 * Returns true if the point "point" is in the segment between the path points idx and idx+1.
 	 * Returns false if idx is out of range;
@@ -359,16 +347,24 @@ public class CatWalk {
 		return OgamMath.isPointInSegment(p0, p1, point);
 	}
 	
-	private void updatePathLength()
+	/**
+	 * Replace the current path in the Catwalk with the vector passed here.
+	 * @param p
+	 */
+	private void setPath(Array<Vector2> p)
 	{
-		pathLength = 0;
-		int j = path.size-1;
-		
-		for (int i = 0; i < path.size; i++)
+		path.clear();
+		// copy all the points that are not collinear
+		for (int i = 0; i < p.size; i++)
 		{
-			pathLength += OgamMath.manhattanDistance(path.get(j), path.get(i));
-			j = i;
-		}		
+			if (!OgamMath.testCollinear(p.get((i-1+p.size)%p.size),p.get(i),p.get((i+1)%p.size)))
+				path.add(new Vector2(p.get(i)));
+		}
+		
+		pathLength = OgamMath.calcPolygonLength(path);
+		pathArea = OgamMath.calcPolygonArea(path);
 	}
+	
+	
 	
 }
